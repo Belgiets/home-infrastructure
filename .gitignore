@@ -1,0 +1,65 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.tfvars
+!*.tfvars.example
+
+# Terraform
+iac/terraform/.terraform/
+iac/terraform/.terraform.lock.hcl
+iac/terraform/terraform.tfstate
+iac/terraform/terraform.tfstate.backup
+iac/terraform/*.tfplan
+iac/terraform/crash.log
+iac/terraform/override.tf
+iac/terraform/override.tf.json
+iac/terraform/*_override.tf
+iac/terraform/*_override.tf.json
+
+# Node.js
+domains/camera-ingestion/watcher/node_modules/
+domains/camera-ingestion/watcher/dist/
+domains/camera-ingestion/watcher/npm-debug.log*
+domains/camera-ingestion/watcher/yarn-debug.log*
+domains/camera-ingestion/watcher/yarn-error.log*
+domains/camera-ingestion/watcher/.pnp
+domains/camera-ingestion/watcher/.pnp.js
+
+# TypeScript
+*.tsbuildinfo
+
+# Docker
+domains/camera-ingestion/ftp-data/
+
+# IDE and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+.Spotlight-V100
+.Trashes
+
+# Logs
+*.log
+logs/
+
+# Google Cloud credentials
+**/application_default_credentials.json
+**/.config/gcloud/
+service-account-key*.json
+credentials.json
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Build artifacts
+*.pyc
+__pycache__/

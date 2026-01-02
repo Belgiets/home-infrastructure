@@ -1,0 +1,14 @@
+project_id      = "your-project-id"
+region          = "europe-central2"
+zone            = "europe-central2-a"
+environment     = "dev"
+vm_machine_type = "e2-micro" # Free tier
+
+# Restrict to your home IP for security (optional)
+# allowed_ftp_cidrs = ["YOUR_HOME_IP/32"]
+allowed_ftp_cidrs = ["0.0.0.0/0"]
+
+# Note: FTP credentials should be set via GCP Console after terraform apply:
+# 1. Go to Secret Manager: https://console.cloud.google.com/security/secret-manager
+# 2. Set value for: camera-ftp-username-dev (e.g., "camera")
+# 3. Set value for: camera-ftp-password-dev (e.g., your secure password)
