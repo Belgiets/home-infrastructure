@@ -5,6 +5,7 @@ export interface WatcherConfig {
     deleteAfterUpload: boolean;
     logLevel: string;
     debounceTime: number;
+    mongoUri: string;
 }
 
 export interface FileUploadResult {

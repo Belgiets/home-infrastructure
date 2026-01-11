@@ -27,7 +27,7 @@ services:
       dockerfile: Dockerfile
     container_name: camera-watcher-local
     volumes:
-      - ftp-data:/watch-dir:ro
+      - ftp-data:/watch-dir
       - ~/.config/gcloud/application_default_credentials.json:/app/gcloud-credentials.json:ro
     environment:
       - NODE_ENV=development
@@ -35,16 +35,29 @@ services:
       - GCS_BUCKET=${GCS_BUCKET_DEV:-home-infra-480109-dev-camera-ingestion}
       - GOOGLE_CLOUD_PROJECT=${GCP_PROJECT_ID}
       - GOOGLE_APPLICATION_CREDENTIALS=/app/gcloud-credentials.json
-      - DELETE_AFTER_UPLOAD=false
+      - DELETE_AFTER_UPLOAD=${DELETE_AFTER_UPLOAD}
       - LOG_LEVEL=debug
+      - MONGO_URI=${MONGO_URI}
     depends_on:
       - ftp-server
     restart: unless-stopped
     networks:
       - camera-network
 
+  mongodb:
+    image: mongo:7
+    container_name: camera-mongodb-local
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+    networks:
+      - camera-network
+
 volumes:
   ftp-data:
+  mongo-data:
 
 networks:
   camera-network:

@@ -54,8 +54,14 @@ export class StorageUploader {
             logger.info(`✓ Uploaded ${fileName} in ${duration}ms (${this.formatBytes(stats.size)})`);
 
             if (config.deleteAfterUpload) {
-                fs.unlinkSync(localFilePath);
-                logger.debug(`Deleted local file: ${localFilePath}`);
+                try {
+                    fs.unlinkSync(localFilePath);
+                    logger.debug(`Deleted local file: ${localFilePath}`);
+                } catch (unlinkError) {
+                    // If we can't delete (e.g., read-only filesystem), just log a warning
+                    logger.warn(`Could not delete local file ${localFilePath}: ${(unlinkError as Error).message}`);
+                    logger.debug(`File will remain in FTP directory`);
+                }
             }
 
             return {
