@@ -33,7 +33,7 @@
    
    # Get the Artifact Registry repository URL (after running terraform apply once)
    # Or use the expected format:
-   export AR_LOCATION="europe-central2"
+   export AR_LOCATION="europe-west1"
    export AR_REPO="${AR_LOCATION}-docker.pkg.dev/home-infra-480109/camera-ingestion-dev"
    
    # Configure Docker to use Artifact Registry
@@ -128,7 +128,7 @@ terraform output artifact_registry_repository
 # Build and push
 cd ../../domains/camera-ingestion/watcher
 export AR_REPO=$(cd ../../../iac/terraform && terraform output -raw artifact_registry_repository)
-gcloud auth configure-docker europe-central2-docker.pkg.dev
+gcloud auth configure-docker europe-west1-docker.pkg.dev
 docker build -t ${AR_REPO}/camera-watcher:latest .
 docker push ${AR_REPO}/camera-watcher:latest
 cd ../../../iac/terraform
@@ -167,7 +167,7 @@ gcloud compute instances list --filter="name:camera-ingestion"
 
 ```bash
 # SSH to VM
-gcloud compute ssh camera-ingestion-dev --zone=europe-central2-a
+gcloud compute ssh camera-ingestion-dev --zone=europe-west1-b
 
 # Check Docker containers
 sudo docker ps
@@ -223,7 +223,7 @@ docker build -t ${AR_REPO}/camera-watcher:latest .
 docker push ${AR_REPO}/camera-watcher:latest
 
 # 2. SSH to VM and restart
-gcloud compute ssh camera-ingestion-dev --zone=europe-central2-a
+gcloud compute ssh camera-ingestion-dev --zone=europe-west1-b
 cd /opt/camera-ingestion
 sudo docker-compose pull watcher
 sudo docker-compose up -d watcher
@@ -238,7 +238,7 @@ gcloud secrets versions add camera-ftp-password-dev \
   --data-file=- <<< "new_password_here"
 
 # Restart FTP server on VM to use new password
-gcloud compute ssh camera-ingestion-dev --zone=europe-central2-a
+gcloud compute ssh camera-ingestion-dev --zone=europe-west1-b
 cd /opt/camera-ingestion
 sudo docker-compose restart ftp-server
 exit
@@ -292,7 +292,7 @@ read -s FTP_PASS && echo -n "$FTP_PASS" | gcloud secrets versions add camera-ftp
 
 **After updating secrets, restart services on VM:**
 ```bash
-gcloud compute ssh camera-ingestion-dev --zone=europe-central2-a
+gcloud compute ssh camera-ingestion-dev --zone=europe-west1-b
 cd /opt/camera-ingestion
 sudo docker-compose restart
 exit
@@ -311,7 +311,7 @@ terraform destroy -var-file="environments/dev.tfvars"
 ### VM not starting
 - Check startup script logs:
   ```bash
-  gcloud compute instances get-serial-port-output camera-ingestion-dev --zone=europe-central2-a
+  gcloud compute instances get-serial-port-output camera-ingestion-dev --zone=europe-west1-b
   ```
 
 ### Can't connect to FTP

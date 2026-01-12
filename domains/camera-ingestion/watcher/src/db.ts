@@ -1,4 +1,4 @@
-import { MongoClient, Db } from 'mongodb';
+import { MongoClient, Db, ServerApiVersion } from 'mongodb';
 import { config } from './config';
 import { logger } from './logger';
 
@@ -12,6 +12,11 @@ export async function initMongo(): Promise<Db> {
 
     client = new MongoClient(config.mongoUri, {
         maxPoolSize: 10,
+        serverApi: {
+            version: ServerApiVersion.v1,
+            strict: true,
+            deprecationErrors: true,
+        }
     });
 
     logger.info('Connecting to MongoDB...');

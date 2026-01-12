@@ -112,6 +112,8 @@ GCP_PROJECT="$(metadata_get 'project/project-id')"
 ARTIFACT_REGISTRY_LOCATION="$(metadata_get 'instance/attributes/artifact-registry-location')"
 FTP_USERNAME_SECRET="$(metadata_get 'instance/attributes/ftp-username-secret')"
 FTP_PASSWORD_SECRET="$(metadata_get 'instance/attributes/ftp-password-secret')"
+MONGODB_URI_SECRET="$(metadata_get 'instance/attributes/mongodb-uri-secret')"
+MONGODB_DATABASE="$(metadata_get 'instance/attributes/mongodb-database')"
 
 echo "Metadata:"
 echo "  EXTERNAL_IP=$EXTERNAL_IP"
@@ -120,11 +122,14 @@ echo "  GCP_PROJECT=$GCP_PROJECT"
 echo "  ARTIFACT_REGISTRY_LOCATION=$ARTIFACT_REGISTRY_LOCATION"
 echo "  FTP_USERNAME_SECRET=$FTP_USERNAME_SECRET"
 echo "  FTP_PASSWORD_SECRET=$FTP_PASSWORD_SECRET"
+echo "  MONGODB_URI_SECRET=$MONGODB_URI_SECRET"
+echo "  MONGODB_DATABASE=$MONGODB_DATABASE"
 
 # --- Secrets ---
 echo "Retrieving secrets from Secret Manager..."
 FTP_USERNAME="$(gcloud secrets versions access latest --secret="${FTP_USERNAME_SECRET}" --project="${GCP_PROJECT}")"
 FTP_PASSWORD="$(gcloud secrets versions access latest --secret="${FTP_PASSWORD_SECRET}" --project="${GCP_PROJECT}")"
+MONGODB_URI="$(gcloud secrets versions access latest --secret="${MONGODB_URI_SECRET}" --project="${GCP_PROJECT}")"
 
 # --- Docker auth for Artifact Registry ---
 echo "Configuring Docker authentication for Artifact Registry..."
@@ -170,6 +175,9 @@ services:
       - GOOGLE_CLOUD_PROJECT=${GCP_PROJECT}
       - DELETE_AFTER_UPLOAD=true
       - LOG_LEVEL=info
+      - MONGODB_URI=${MONGODB_URI}
+      - MONGODB_DATABASE=${MONGODB_DATABASE}
+      - ENABLE_MONGODB=true
     depends_on:
       - ftp-server
     restart: always

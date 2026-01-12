@@ -6,13 +6,13 @@ variable "project_id" {
 variable "region" {
   description = "GCP region"
   type        = string
-  default     = "europe-central2"
+  default     = "europe-west1"
 }
 
 variable "zone" {
   description = "GCP zone"
   type        = string
-  default     = "europe-central2-a"
+  default     = "europe-west1-b"
 }
 
 variable "environment" {
@@ -39,5 +39,53 @@ variable "allowed_ftp_cidrs" {
 variable "artifact_registry_location" {
   description = "Location for Artifact Registry repository"
   type        = string
-  default     = "europe-central2"
+  default     = "europe-west1"
+}
+
+# MongoDB Atlas API Credentials
+variable "atlas_public_key" {
+  description = "MongoDB Atlas API Public Key (from Service Account)"
+  type        = string
+  sensitive   = true
+}
+
+variable "atlas_private_key" {
+  description = "MongoDB Atlas API Private Key (from Service Account)"
+  type        = string
+  sensitive   = true
+}
+
+variable "atlas_project_id" {
+  description = "MongoDB Atlas Project ID"
+  type        = string
+}
+
+variable "existing_cluster_name" {
+  description = "Name of existing MongoDB Atlas cluster (created via web GUI)"
+  type        = string
+}
+
+# MongoDB Database Configuration
+variable "mongodb_database_name" {
+  description = "MongoDB database name"
+  type        = string
+  default     = "camera_ingestion"
+}
+
+variable "mongodb_username" {
+  description = "MongoDB database username"
+  type        = string
+  sensitive   = true
+}
+
+variable "mongodb_password" {
+  description = "MongoDB database password"
+  type        = string
+  sensitive   = true
+}
+
+variable "mongodb_additional_allowed_ips" {
+  description = "Additional IP addresses allowed to access MongoDB Atlas"
+  type        = list(string)
+  default     = []
 }

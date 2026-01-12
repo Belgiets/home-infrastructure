@@ -46,3 +46,34 @@ output "secret_ids" {
     ftp_password = google_secret_manager_secret.ftp_password.secret_id
   }
 }
+
+output "mongodb_cluster_id" {
+  description = "MongoDB Atlas cluster ID"
+  value       = module.mongodb_atlas.cluster_id
+}
+
+output "mongodb_cluster_name" {
+  description = "MongoDB Atlas cluster name"
+  value       = module.mongodb_atlas.cluster_name
+}
+
+output "mongodb_connection_string" {
+  description = "MongoDB connection string (use for application configuration)"
+  value       = module.mongodb_atlas.connection_string_standard_srv
+  sensitive   = true
+}
+
+output "mongodb_database_name" {
+  description = "MongoDB database name"
+  value       = module.mongodb_atlas.database_name
+}
+
+output "mongodb_cluster_state" {
+  description = "Current state of MongoDB cluster"
+  value       = module.mongodb_atlas.state_name
+}
+
+output "mongodb_uri_secret" {
+  description = "Secret Manager secret name for MongoDB URI"
+  value       = google_secret_manager_secret.mongodb_uri.secret_id
+}

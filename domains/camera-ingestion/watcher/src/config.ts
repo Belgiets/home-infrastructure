@@ -10,7 +10,7 @@ export const config: WatcherConfig = {
     deleteAfterUpload: process.env.DELETE_AFTER_UPLOAD === 'true',
     logLevel: process.env.LOG_LEVEL || 'info',
     debounceTime: parseInt(process.env.DEBOUNCE_TIME || '2000', 10),
-    mongoUri: process.env.MONGO_URI || '',
+    mongoUri: process.env.MONGODB_URI || '',
 };
 
 export function validateConfig(): void {
@@ -23,6 +23,6 @@ export function validateConfig(): void {
     }
 
     if (!config.mongoUri) {
-        throw new Error('MONGO_URI environment variable is required');
+        throw new Error('MONGODB_URI environment variable is required');
     }
 }

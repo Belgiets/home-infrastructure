@@ -37,7 +37,7 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=/app/gcloud-credentials.json
       - DELETE_AFTER_UPLOAD=${DELETE_AFTER_UPLOAD}
       - LOG_LEVEL=debug
-      - MONGO_URI=${MONGO_URI}
+      - MONGODB_URI=${MONGODB_URI}
     depends_on:
       - ftp-server
     restart: unless-stopped

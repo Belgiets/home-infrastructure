@@ -52,7 +52,7 @@ cd iac/terraform
 terraform apply -var-file="environments/dev.tfvars"
 
 # Or restart existing VM
-gcloud compute ssh camera-ingestion-dev --zone=europe-central2-a \
+gcloud compute ssh camera-ingestion-dev --zone=europe-west1-b \
   --command="cd /opt/camera-ingestion && sudo docker-compose restart"
 ```
 
@@ -65,7 +65,7 @@ gcloud compute ssh camera-ingestion-dev --zone=europe-central2-a \
 2. Click `camera-ftp-password-dev`
 3. Click "NEW VERSION"
 4. Enter new password
-5. Restart services: `gcloud compute ssh camera-ingestion-dev --zone=europe-central2-a --command="cd /opt/camera-ingestion && sudo docker-compose restart"`
+5. Restart services: `gcloud compute ssh camera-ingestion-dev --zone=europe-west1-b --command="cd /opt/camera-ingestion && sudo docker-compose restart"`
 
 **Via CLI:**
 ```bash
@@ -74,7 +74,7 @@ read -sp "Enter new FTP password: " NEW_PASS && echo
 echo -n "$NEW_PASS" | gcloud secrets versions add camera-ftp-password-dev --data-file=-
 
 # Restart FTP server to use new password
-gcloud compute ssh camera-ingestion-dev --zone=europe-central2-a \
+gcloud compute ssh camera-ingestion-dev --zone=europe-west1-b \
   --command="cd /opt/camera-ingestion && sudo docker-compose restart ftp-server"
 ```
 
@@ -98,7 +98,7 @@ gcloud compute ssh camera-ingestion-dev --zone=europe-central2-a \
 
 Check startup logs:
 ```bash
-gcloud compute instances get-serial-port-output camera-ingestion-dev --zone=europe-central2-a | grep -i secret
+gcloud compute instances get-serial-port-output camera-ingestion-dev --zone=europe-west1-b | grep -i secret
 ```
 
 This usually means secrets don't have values. Set them using the steps above.

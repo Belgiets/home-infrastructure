@@ -1,6 +1,6 @@
 project_id      = "your-project-id"
-region          = "europe-central2"
-zone            = "europe-central2-a"
+region          = "europe-west1"
+zone            = "europe-west1-b"
 environment     = "dev"
 vm_machine_type = "e2-micro" # Free tier
 
@@ -12,3 +12,20 @@ allowed_ftp_cidrs = ["0.0.0.0/0"]
 # 1. Go to Secret Manager: https://console.cloud.google.com/security/secret-manager
 # 2. Set value for: camera-ftp-username-dev (e.g., "camera")
 # 3. Set value for: camera-ftp-password-dev (e.g., your secure password)
+
+# MongoDB Atlas Configuration
+atlas_public_key   = "your-atlas-public-key-here"
+atlas_private_key  = "your-atlas-private-key-here"
+atlas_project_id   = "your-atlas-project-id-here"
+existing_cluster_name = "your-cluster-name"
+
+# MongoDB Database Settings
+mongodb_database_name = "camera_ingestion"
+mongodb_username      = "camera_app"
+mongodb_password      = "YOUR-SECURE-PASSWORD-HERE"  # Change this!
+
+# Optional: Additional IPs that need MongoDB access
+mongodb_additional_allowed_ips = [
+  # "YOUR-OFFICE-IP/32",
+  # "YOUR-HOME-IP/32",
+]

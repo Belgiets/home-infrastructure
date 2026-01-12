@@ -10,7 +10,7 @@
 ## Build and push as linux/amd64 (Apple Silicon compatible)
 ```
 PROJECT_ID="YOUR_PROJECT_ID"
-REGION="europe-central2"
+REGION="europe-west1"
 REPO="ftp-repo"
 IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/ftp-server:1"
 
@@ -23,13 +23,13 @@ docker buildx build --platform linux/amd64 -t "${IMAGE}" --push .
 
 ## Other
 Connect to ftp VM via ssh  
-``gcloud compute ssh ftp-vm --project=home-infra-480109 --zone=europe-central2-a``
+``gcloud compute ssh camera-ingestion-dev --project=home-infra-480109 --zone=europe-west1-b``
 
 Restart GCE VM instance
-``gcloud compute instances reset ftp-vm --zone europe-central2-a``
+``gcloud compute instances reset camera-ingestion-dev --zone europe-west1-b``
 
 Debug GCE VM loading  
-``gcloud compute instances get-serial-port-output ftp-vm --zone europe-central2-a --port 1 --start 0 | tail -n 300``
+``gcloud compute instances get-serial-port-output camera-ingestion-dev --zone europe-west1-b --port 1 --start 0 | tail -n 300``
 
 Other container logs  
 ```
