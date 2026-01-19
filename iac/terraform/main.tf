@@ -6,6 +6,11 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 5.0"
     }
+
+    mongodbatlas = {
+      source  = "mongodb/mongodbatlas"
+      version = "~> 1.15"
+    }
   }
 
   # Uncomment to use GCS backend
@@ -18,6 +23,11 @@ terraform {
 provider "google" {
   project = var.project_id
   region  = var.region
+}
+
+provider "mongodbatlas" {
+  public_key  = var.atlas_public_key
+  private_key = var.atlas_private_key
 }
 
 # Artifact Registry Repository
@@ -54,6 +64,21 @@ resource "google_secret_manager_secret" "ftp_username" {
 
 resource "google_secret_manager_secret" "ftp_password" {
   secret_id = "camera-ftp-password-${var.environment}"
+
+  replication {
+    auto {}
+  }
+
+  labels = {
+    environment = var.environment
+    managed_by  = "terraform"
+    domain      = "camera-ingestion"
+  }
+}
+
+# MongoDB URI Secret
+resource "google_secret_manager_secret" "mongodb_uri" {
+  secret_id = "camera-mongodb-uri-${var.environment}"
 
   replication {
     auto {}
@@ -114,6 +139,13 @@ resource "google_secret_manager_secret_iam_member" "ftp_password_accessor" {
   member    = "serviceAccount:${google_service_account.camera_ingestion.email}"
 }
 
+# IAM permission for MongoDB secret
+resource "google_secret_manager_secret_iam_member" "mongodb_uri_accessor" {
+  secret_id = google_secret_manager_secret.mongodb_uri.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.camera_ingestion.email}"
+}
+
 # GCS Bucket
 module "camera_bucket" {
   source = "./modules/gcs-bucket"
@@ -168,7 +200,7 @@ resource "google_compute_instance" "camera_ingestion" {
   network_interface {
     network = "default"
     access_config {
-      # Ephemeral external IP
+      nat_ip = google_compute_address.camera_ingestion.address  # Use static IP
     }
   }
 
@@ -183,6 +215,8 @@ resource "google_compute_instance" "camera_ingestion" {
     artifact-registry-location = var.artifact_registry_location
     ftp-username-secret     = google_secret_manager_secret.ftp_username.secret_id
     ftp-password-secret     = google_secret_manager_secret.ftp_password.secret_id
+    mongodb-uri-secret      = google_secret_manager_secret.mongodb_uri.secret_id
+    mongodb-database        = module.mongodb_atlas.database_name
   }
 
   metadata_startup_script = file("${path.module}/scripts/startup.sh")
@@ -195,12 +229,38 @@ resource "google_compute_instance" "camera_ingestion" {
 
   # Allow stopping for updates
   allow_stopping_for_update = true
+
+  # depends_on = [
+  #   module.mongodb_atlas
+  # ]
 }
 
-# Reserve static IP (optional, for production)
+# Reserve static IP
 resource "google_compute_address" "camera_ingestion" {
-  count = var.environment == "prod" ? 1 : 0
-
   name   = "camera-ingestion-${var.environment}-ip"
   region = var.region
+}
+
+resource "google_secret_manager_secret_version" "mongodb_uri" {
+  secret      = google_secret_manager_secret.mongodb_uri.id
+  secret_data = module.mongodb_atlas.mongo_uri
+}
+
+# 6. ADD the MongoDB Atlas module call (at the end of your main.tf)
+module "mongodb_atlas" {
+  source = "./modules/mongodb-atlas"
+
+  atlas_project_id       = var.atlas_project_id
+  existing_cluster_name  = var.existing_cluster_name  # Name of your existing cluster
+  environment            = var.environment
+  database_name          = var.mongodb_database_name
+
+  db_username = var.mongodb_username
+  db_password = var.mongodb_password
+
+  # Allow access from the VM's external IP
+  vm_external_ip = google_compute_address.camera_ingestion.address
+
+  # Additional IPs that need access (e.g., your office, CI/CD)
+  additional_allowed_ips = var.mongodb_additional_allowed_ips
 }

@@ -4,6 +4,8 @@ import { config } from './config';
 import { logger } from './logger';
 import { StorageUploader } from './storageUploader';
 import { WatcherStats } from './types';
+import { FileRepository } from "./fileRepository";
+import { getDb } from "./db";
 
 export class FileWatcher {
     private uploader: StorageUploader;
@@ -11,9 +13,11 @@ export class FileWatcher {
     private stats: WatcherStats;
     private processingFiles = new Set<string>();
     private debounceTimers = new Map<string, NodeJS.Timeout>();
+    private fileRepo: FileRepository;
 
     constructor() {
         this.uploader = new StorageUploader();
+        this.fileRepo = new FileRepository(getDb());
         this.stats = {
             filesProcessed: 0,
             filesUploaded: 0,
@@ -52,8 +56,8 @@ export class FileWatcher {
             clearTimeout(existingTimer);
         }
 
-        const timer = setTimeout(() => {
-            this.processFile(filePath);
+        const timer = setTimeout(async () => {
+            await this.processFile(filePath);
             this.debounceTimers.delete(filePath);
         }, config.debounceTime);
 
@@ -72,6 +76,9 @@ export class FileWatcher {
 
             if (result.success) {
                 this.stats.filesUploaded++;
+                await this.fileRepo.markUploaded({
+                    fileName, gcsPath: result.gcsPath
+                })
                 logger.info(`Upload successful: ${result.gcsPath}`);
             } else {
                 this.stats.filesFailed++;

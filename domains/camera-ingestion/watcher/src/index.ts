@@ -1,6 +1,7 @@
 import { config, validateConfig } from './config';
 import { logger } from './logger';
 import { FileWatcher } from './fileWatcher';
+import { closeMongo, initMongo } from "./db";
 
 async function main() {
     try {
@@ -9,16 +10,21 @@ async function main() {
 
         validateConfig();
         logger.info('Configuration validated successfully');
+
+        await initMongo();
+
         logger.info(`Watch directory: ${config.watchDir}`);
         logger.info(`GCS bucket: ${config.gcsBucket}`);
         logger.info(`Delete after upload: ${config.deleteAfterUpload}`);
 
         const watcher = new FileWatcher();
         watcher.start();
+        console.log("config.deleteAfterUpload", config.deleteAfterUpload)
 
         const shutdown = async () => {
             logger.info('Shutdown signal received');
             watcher.stop();
+            await closeMongo();
             process.exit(0);
         };
 

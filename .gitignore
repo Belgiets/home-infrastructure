@@ -63,3 +63,6 @@ credentials.json
 # Build artifacts
 *.pyc
 __pycache__/
+
+# Internal comments
+*.txt
