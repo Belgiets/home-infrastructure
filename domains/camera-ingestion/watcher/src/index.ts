@@ -3,7 +3,7 @@ import { logger } from './logger';
 import { FileWatcher } from './fileWatcher';
 import { closeMongo, initMongo } from "./db";
 
-async function main() {
+export async function main() {
     try {
         logger.info('Camera Watcher starting...');
         logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);

@@ -4,7 +4,7 @@ import { WatcherConfig } from './types';
 dotenv.config();
 
 export const config: WatcherConfig = {
-    watchDir: process.env.WATCH_DIR || '/watch-dir',
+    watchDir: process.env.WATCH_DIR || '',
     gcsBucket: process.env.GCS_BUCKET || '',
     gcsProjectId: process.env.GOOGLE_CLOUD_PROJECT,
     deleteAfterUpload: process.env.DELETE_AFTER_UPLOAD === 'true',
