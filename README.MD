@@ -1,4 +1,75 @@
-## Install gcloud console and terraform(mac os)
+# Home Infrastructure Platform  
+A collection of microservices for home automation and monitoring.
+
+## Services  
+- Camera File Processor — FTP server that receives files from home cameras, uploads them to Google Cloud Storage, and persists metadata (including GCS URIs) to MongoDB.
+
+## Project Structure
+```
+home-infrastructure/
+├── domains/
+│   └── camera-ingestion/          # Camera ingestion bounded context
+│       ├── watcher/                # TypeScript file watcher service
+├── iac/
+│   └── terraform/                  # Infrastructure as Code
+│       ├── modules/
+│       ├── environments/
+│       └── scripts/
+```
+
+## Features
+
+- ✅ FTP server for camera uploads
+- ✅ Automatic file watching and processing
+- ✅ Upload to GCS with date-based folder structure (YYYY/MM/DD)
+- ✅ MongoDB Atlas integration for file metadata persistence
+- ✅ Secret Manager integration for credentials
+- ✅ Artifact Registry for Docker images
+- ✅ Cloud Logging integration
+- ✅ Automatic file cleanup after upload
+- ✅ Terraform IaC for full deployment automation
+
+## Prerequisites
+
+- Google Cloud Platform account
+- MongoDB Atlas account
+- Terraform >= 1.0
+- Docker and Docker Compose
+- gcloud CLI configured
+- Node.js 20+ (for local development)  
+
+## Quick Start
+
+### 1. Local Development
+
+```bash
+# Create .env file
+cd domains/camera-ingestion
+cp .env.example .env
+# Edit .env with your values
+
+# Install dependencies
+cd watcher
+npm install
+
+# Start services locally
+cd ..
+docker-compose -f docker-compose.local.yml up
+```
+
+### 2. Deploy to GCP
+
+See [iac/terraform/DEPLOYMENT.md](iac/terraform/DEPLOYMENT.md) for detailed deployment instructions.
+
+Quick deployment:
+
+```bash
+# Enable APIs
+gcloud services enable compute.googleapis.com storage.googleapis.com \
+  iam.googleapis.com logging.googleapis.com \
+  secretmanager.googleapis.com artifactregistry.googleapis.com
+  
+# Install gcloud console and terraform(mac os)
 ``brew tap hashicorp/tap``  
 ``brew install hashicorp/tap/terraform``  
 ``terraform -version``  
@@ -7,35 +78,22 @@
 ``gcloud config set project YOUR_PROJECT_ID``  
 ``gcloud auth application-default set-quota-project YOUR_PROJECT_ID``
 
-## Build and push as linux/amd64 (Apple Silicon compatible)
-```
-PROJECT_ID="YOUR_PROJECT_ID"
-REGION="europe-west1"
-REPO="ftp-repo"
-IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/ftp-server:1"
-
-# Ensure buildx is available and active
-docker buildx create --use --name buildx-multi 2>/dev/null || docker buildx use buildx-multi
-
-# Build amd64 and push
-docker buildx build --platform linux/amd64 -t "${IMAGE}" --push .
+# Deploy infrastructure
+cd iac/terraform
+terraform init
+terraform apply -var-file="environments/dev.tfvars"
 ```
 
-## Other
-Connect to ftp VM via ssh  
-``gcloud compute ssh camera-ingestion-dev --project=home-infra-480109 --zone=europe-west1-b``
+## Contributing
 
-Restart GCE VM instance
-``gcloud compute instances reset camera-ingestion-dev --zone europe-west1-b``
+This is a personal home infrastructure project. Feel free to fork and adapt for your own use.
 
-Debug GCE VM loading  
-``gcloud compute instances get-serial-port-output camera-ingestion-dev --zone europe-west1-b --port 1 --start 0 | tail -n 300``
+## License
 
-Other container logs  
-```
-sudo tail -n 200 /var/log/syslog
-sudo tail -n 200 /var/log/daemon.log
-sudo tail -n 200 /var/log/cloud-init-output.log
-sudo ls -la /var/log/google-startup-scripts.log 2>/dev/null || true
-sudo tail -n 200 /var/log/google-startup-scripts.log 2>/dev/null || true
-```
+MIT
+
+## Acknowledgments
+
+- Built following Domain-Driven Design principles
+- Infrastructure as Code with Terraform
+- Security-first approach with Secret Manager

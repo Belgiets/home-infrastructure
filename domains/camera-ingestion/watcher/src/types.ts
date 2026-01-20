@@ -1,24 +1,24 @@
 export interface WatcherConfig {
-    watchDir: string;
-    gcsBucket: string;
-    gcsProjectId?: string;
-    deleteAfterUpload: boolean;
-    logLevel: string;
-    debounceTime: number;
-    mongoUri: string;
+  watchDir: string;
+  gcsBucket: string;
+  gcsProjectId?: string;
+  deleteAfterUpload: boolean;
+  logLevel: string;
+  debounceTime: number;
+  mongoUri: string;
 }
 
 export interface FileUploadResult {
-    success: boolean;
-    filePath: string;
-    gcsPath: string;
-    error?: Error;
-    uploadedAt: Date;
+  success: boolean;
+  filePath: string;
+  gcsPath: string;
+  error?: Error;
+  uploadedAt: Date;
 }
 
 export interface WatcherStats {
-    filesProcessed: number;
-    filesUploaded: number;
-    filesFailed: number;
-    startTime: Date;
+  filesProcessed: number;
+  filesUploaded: number;
+  filesFailed: number;
+  startTime: Date;
 }
