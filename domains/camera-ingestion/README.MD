@@ -4,7 +4,7 @@ Automated camera image ingestion system for cameras, uploading images via FTP to
 
 ## Architecture
 ```
-Hikvision Camera → FTP Server (Docker) → File Watcher (TypeScript) → Google Cloud Storage
+Camera → FTP Server (Docker) → File Watcher (TypeScript) → Google Cloud Storage
 ```
 
 ### Camera Setup

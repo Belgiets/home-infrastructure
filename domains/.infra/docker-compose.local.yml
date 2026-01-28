@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # ===== SHARED SERVICES =====
+  mongodb:
+    image: mongo:7
+    container_name: camera-mongodb-local
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+    networks:
+      - camera-network
+
+  # ===== CAMERA-INGESTION DOMAIN SERVICES =====
+  ftp-server:
+    image: fauria/vsftpd:latest
+    container_name: camera-ftp-local
+    ports:
+      - "20:20"
+      - "21:21"
+      - "21100-21110:21100-21110"
+    volumes:
+      - ftp-data:/home/vsftpd/camera
+    environment:
+      FTP_USER: camera
+      FTP_PASS: camera123  # Change this!
+      PASV_ADDRESS: 127.0.0.1
+      PASV_MIN_PORT: 21100
+      PASV_MAX_PORT: 21110
+      LOCAL_UMASK: 022
+    restart: unless-stopped
+    networks:
+      - camera-network
+
+  watcher:
+    build:
+      context: ../camera-ingestion/watcher
+      dockerfile: Dockerfile
+    container_name: camera-watcher-local
+    volumes:
+      - ftp-data:/watch-dir
+      - ~/.config/gcloud/application_default_credentials.json:/app/gcloud-credentials.json:ro
+    environment:
+      - NODE_ENV=development
+      - WATCH_DIR=/watch-dir
+      - GCS_BUCKET=${GCS_BUCKET_DEV:-home-infra-480109-dev-camera-ingestion}
+      - GOOGLE_CLOUD_PROJECT=${GCP_PROJECT_ID}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/gcloud-credentials.json
+      - DELETE_AFTER_UPLOAD=${DELETE_AFTER_UPLOAD}
+      - LOG_LEVEL=debug
+      - MONGODB_URI=${MONGODB_URI}
+    depends_on:
+      - ftp-server
+    restart: unless-stopped
+    networks:
+      - camera-network
+
+  # ===== DASHBOARD DOMAIN SERVICES =====
+  postgres:
+    image: postgres:14
+    container_name: dashboard-postgres-local
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=dashboard
+      - POSTGRES_PASSWORD=dashboard123
+      - POSTGRES_DB=dashboard
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - dashboard-network
+
+volumes:
+  ftp-data:
+  mongo-data:
+  postgres-data:
+
+networks:
+  camera-network:
+    driver: bridge
+  dashboard-network:
+    driver: bridge
