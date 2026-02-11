@@ -10,7 +10,7 @@
 
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import LoginPage from "../page";
+import LoginPage from "./page";
 import { api } from "@/lib/api";
 
 // Mock next/navigation

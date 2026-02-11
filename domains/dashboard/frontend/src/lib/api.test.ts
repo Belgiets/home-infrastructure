@@ -9,7 +9,7 @@
  * 5. If refresh fails, redirect to login
  */
 
-import { api, ApiError } from "../api";
+import { api, ApiError } from "./api";
 
 // Mock global fetch
 const mockFetch = jest.fn();
