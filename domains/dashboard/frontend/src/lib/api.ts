@@ -105,27 +105,41 @@ async function request<T>(
 
 export const api = {
   auth: {
+    // Public endpoints - no retry on 401
     register: (data: RegisterData): Promise<MessageResponse> =>
-      request<MessageResponse>("/auth/register", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+      request<MessageResponse>(
+        "/auth/register",
+        {
+          method: "POST",
+          body: JSON.stringify(data),
+        },
+        false
+      ),
 
     login: (data: LoginData): Promise<MessageResponse> =>
-      request<MessageResponse>("/auth/login", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+      request<MessageResponse>(
+        "/auth/login",
+        {
+          method: "POST",
+          body: JSON.stringify(data),
+        },
+        false
+      ),
 
+    // Protected endpoints - retry on 401
     logout: (): Promise<MessageResponse> =>
       request<MessageResponse>("/auth/logout", {
         method: "POST",
       }),
 
     refresh: (): Promise<MessageResponse> =>
-      request<MessageResponse>("/auth/refresh", {
-        method: "POST",
-      }),
+      request<MessageResponse>(
+        "/auth/refresh",
+        {
+          method: "POST",
+        },
+        false
+      ),
 
     me: (): Promise<User> => request<User>("/auth/me"),
   },
