@@ -69,3 +69,6 @@ __pycache__/
 
 # Jest cache
 .jest/
+
+# Claude agent
+.claude

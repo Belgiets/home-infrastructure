@@ -21,6 +21,41 @@ interface MessageResponse {
   message: string;
 }
 
+// Camera Files types
+export interface CameraFile {
+  id: string;
+  fileName: string;
+  gcsPath: string;
+  status: string;
+  uploadedAt: string;
+  createdAt: string;
+  imageUrl: string;
+}
+
+export interface CameraFilesResponse {
+  data: CameraFile[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface CameraFilesQuery {
+  page?: number;
+  limit?: number;
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface CameraFilesStats {
+  totalFiles: number;
+  uploadedToday: number;
+  uploadedThisWeek: number;
+  uploadedThisMonth: number;
+  recentUploads: { date: string; count: number }[];
+}
+
 class ApiError extends Error {
   constructor(
     public status: number,
@@ -142,6 +177,28 @@ export const api = {
       ),
 
     me: (): Promise<User> => request<User>("/auth/me"),
+  },
+
+  cameraFiles: {
+    list: (query: CameraFilesQuery = {}): Promise<CameraFilesResponse> => {
+      const params = new URLSearchParams();
+      if (query.page) params.set("page", query.page.toString());
+      if (query.limit) params.set("limit", query.limit.toString());
+      if (query.search) params.set("search", query.search);
+      if (query.dateFrom) params.set("dateFrom", query.dateFrom);
+      if (query.dateTo) params.set("dateTo", query.dateTo);
+
+      const queryString = params.toString();
+      return request<CameraFilesResponse>(
+        `/camera-files${queryString ? `?${queryString}` : ""}`
+      );
+    },
+
+    getById: (id: string): Promise<CameraFile> =>
+      request<CameraFile>(`/camera-files/${id}`),
+
+    getStats: (): Promise<CameraFilesStats> =>
+      request<CameraFilesStats>("/camera-files/stats"),
   },
 };
 
