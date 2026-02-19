@@ -264,3 +264,15 @@ module "mongodb_atlas" {
   # Additional IPs that need access (e.g., your office, CI/CD)
   additional_allowed_ips = var.mongodb_additional_allowed_ips
 }
+
+# Dashboard Backend (Cloud Run)
+module "dashboard" {
+  source = "./modules/dashboard"
+
+  project_id                 = var.project_id
+  environment                = var.environment
+  region                     = var.region
+  artifact_registry_location = var.artifact_registry_location
+  cloud_run_image            = var.dashboard_cloud_run_image
+  gcs_bucket_name            = module.camera_bucket.bucket_name
+}

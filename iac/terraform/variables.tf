@@ -89,3 +89,9 @@ variable "mongodb_additional_allowed_ips" {
   type        = list(string)
   default     = []
 }
+
+# Dashboard Backend
+variable "dashboard_cloud_run_image" {
+  description = "Full Docker image URL for dashboard backend Cloud Run service"
+  type        = string
+}

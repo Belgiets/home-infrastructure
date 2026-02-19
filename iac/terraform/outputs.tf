@@ -77,3 +77,24 @@ output "mongodb_uri_secret" {
   description = "Secret Manager secret name for MongoDB URI"
   value       = google_secret_manager_secret.mongodb_uri.secret_id
 }
+
+# Dashboard Backend Outputs
+output "dashboard_cloud_run_url" {
+  description = "Cloud Run service URL for dashboard backend"
+  value       = module.dashboard.cloud_run_url
+}
+
+output "dashboard_service_account_email" {
+  description = "Service account email for dashboard backend"
+  value       = module.dashboard.service_account_email
+}
+
+output "dashboard_artifact_registry" {
+  description = "Artifact Registry repository path for dashboard backend Docker images"
+  value       = module.dashboard.artifact_registry_repository
+}
+
+output "dashboard_secret_ids" {
+  description = "Secret Manager secret IDs for dashboard backend (populate values manually after apply)"
+  value       = module.dashboard.secret_ids
+}
