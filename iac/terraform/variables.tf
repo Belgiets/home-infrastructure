@@ -90,6 +90,13 @@ variable "mongodb_additional_allowed_ips" {
   default     = []
 }
 
+# Vercel
+variable "vercel_api_token" {
+  description = "Vercel API token (generate at https://vercel.com/account/tokens)"
+  type        = string
+  sensitive   = true
+}
+
 # Dashboard Backend
 variable "dashboard_cloud_run_image" {
   description = "Full Docker image URL for dashboard backend Cloud Run service"

@@ -11,6 +11,11 @@ terraform {
       source  = "mongodb/mongodbatlas"
       version = "~> 1.15"
     }
+
+    vercel = {
+      source  = "vercel/vercel"
+      version = "~> 4.0"
+    }
   }
 
   # Uncomment to use GCS backend
@@ -28,6 +33,10 @@ provider "google" {
 provider "mongodbatlas" {
   public_key  = var.atlas_public_key
   private_key = var.atlas_private_key
+}
+
+provider "vercel" {
+  api_token = var.vercel_api_token
 }
 
 # Artifact Registry Repository
@@ -275,4 +284,13 @@ module "dashboard" {
   artifact_registry_location = var.artifact_registry_location
   cloud_run_image            = var.dashboard_cloud_run_image
   gcs_bucket_name            = module.camera_bucket.bucket_name
+}
+
+# Dashboard Frontend (Vercel)
+module "vercel" {
+  source = "./modules/vercel"
+
+  environment = var.environment
+  github_repo = "Belgiets/home-infrastructure"
+  backend_url = module.dashboard.cloud_run_url
 }

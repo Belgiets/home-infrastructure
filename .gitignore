@@ -7,10 +7,10 @@
 
 # Terraform
 iac/terraform/.terraform/
-iac/terraform/.terraform.lock.hcl
 iac/terraform/terraform.tfstate
 iac/terraform/terraform.tfstate.backup
 iac/terraform/*.tfplan
+iac/terraform/.terraform.tfstate.lock.info
 iac/terraform/crash.log
 iac/terraform/override.tf
 iac/terraform/override.tf.json

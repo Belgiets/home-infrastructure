@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dashboard Frontend
 
-## Getting Started
+Next.js 16 frontend for the Home Infrastructure Dashboard.
 
-First, run the development server:
+## Tech Stack
+
+- **Next.js 16** with App Router
+- **React 19**
+- **Tailwind CSS 4**
+- **TypeScript**
+
+## Prerequisites
+
+- Node.js 20+
+
+## Setup
+
+### 1. Install dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure environment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy `.env.example` to `.env`:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cp .env.example .env
+```
 
-## Learn More
+### Environment Variables
 
-To learn more about Next.js, take a look at the following resources:
+| Variable | Where | Description |
+|----------|-------|-------------|
+| `NEXT_PUBLIC_API_URL` | `.env` (local only) | Backend URL for browser requests. Set to `http://localhost:3000` locally |
+| `BACKEND_URL` | Vercel env vars only | Cloud Run URL for server-side proxy rewrites. Do NOT set locally |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### How the API proxy works
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The frontend and backend are deployed to different domains (Vercel and Cloud Run).
+Browsers block cross-domain cookies, so the frontend uses Next.js rewrites to proxy
+API requests through Vercel — making them same-origin.
 
-## Deploy on Vercel
+**Local development:**
+- `.env` has `NEXT_PUBLIC_API_URL=http://localhost:3000`
+- `api.ts` uses this value directly — all requests go straight to `localhost:3000`
+- The rewrites in `next.config.ts` are never triggered
+- `BACKEND_URL` is not set and not needed
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**On Vercel (production/preview):**
+- `NEXT_PUBLIC_API_URL` is NOT set — defaults to `/api`
+- `api.ts` makes requests to `/api/auth/login`, `/api/camera-files`, etc.
+- Next.js rewrites match `/api/:path*` and proxy them to `BACKEND_URL` (Cloud Run)
+- Cookies work because the browser sees same-origin requests
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Running
+
+```bash
+# Development (port 3001)
+npm run dev
+
+# Production build
+npm run build
+
+# Start production server
+npm start
+```
+
+## Testing
+
+```bash
+# Unit tests
+npm test
+
+# Watch mode
+npm run test:watch
+
+# Coverage
+npm run test:coverage
+```
+
+## Deployment
+
+Deployment is managed by Terraform using the Vercel provider. Pushing to `main` triggers
+automatic production deployment via Vercel's GitHub integration.
+
+Vercel environment variables (`BACKEND_URL`) are set via Terraform — see
+`iac/terraform/modules/vercel/` for configuration.

@@ -98,3 +98,9 @@ output "dashboard_secret_ids" {
   description = "Secret Manager secret IDs for dashboard backend (populate values manually after apply)"
   value       = module.dashboard.secret_ids
 }
+
+# Vercel Outputs
+output "vercel_dashboard_url" {
+  description = "Vercel dashboard frontend URL"
+  value       = module.vercel.project_url
+}
