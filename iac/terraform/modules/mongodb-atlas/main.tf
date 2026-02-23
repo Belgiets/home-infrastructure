@@ -48,6 +48,6 @@ resource "mongodbatlas_project_ip_access_list" "additional" {
   for_each = toset(var.additional_allowed_ips)
 
   project_id = var.atlas_project_id
-  ip_address = each.value
-  comment    = "Additional allowed IP: ${each.value}"
+  cidr_block = each.value
+  comment    = "Additional allowed CIDR: ${each.value}"
 }
