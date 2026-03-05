@@ -79,6 +79,7 @@ export class FileWatcher {
         await this.fileRepo.markUploaded({
           fileName,
           gcsPath: result.gcsPath,
+          gcsThumbPath: result.gcsThumbPath
         });
         logger.info(`Upload successful: ${result.gcsPath}`);
       } else {

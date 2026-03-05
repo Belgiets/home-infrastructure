@@ -12,6 +12,7 @@ export interface FileUploadResult {
   success: boolean;
   filePath: string;
   gcsPath: string;
+  gcsThumbPath?: string;
   error?: Error;
   uploadedAt: Date;
 }

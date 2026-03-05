@@ -19,7 +19,6 @@ export async function main(): Promise<void> {
 
     const watcher = new FileWatcher();
     watcher.start();
-    console.log('config.deleteAfterUpload', config.deleteAfterUpload);
 
     const shutdown = async (): Promise<never> => {
       logger.info('Shutdown signal received');

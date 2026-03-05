@@ -64,7 +64,3 @@ gcloud compute ssh camera-ingestion-dev --zone=us-central1-a \
 # Or via Cloud Logging
 gcloud logging read "resource.type=gce_instance" --limit 50
 ```
-
-## Troubleshooting
-
-See [iac/terraform/DEPLOYMENT.md#troubleshooting](iac/terraform/DEPLOYMENT.md#troubleshooting)
