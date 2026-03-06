@@ -74,6 +74,7 @@ describe('CameraFilesService', () => {
             uploadedAt: mockCameraFile.uploadedAt,
             createdAt: mockCameraFile.createdAt,
             imageUrl: signedUrl,
+            thumbnailUrl: '',
           },
         ],
         total: 1,
@@ -151,8 +152,25 @@ describe('CameraFilesService', () => {
       const result = await service.findAll({ page: 1, limit: 20 });
 
       expect(result.data[0].imageUrl).toBe('');
+      expect(result.data[0].thumbnailUrl).toBe('');
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
+    });
+
+    it('should generate thumbnailUrl when gcsThumbPath exists', async () => {
+      const fileWithThumb: CameraFile = {
+        ...mockCameraFile,
+        gcsThumbPath: 'gs://bucket/2026/01/20/IMG_20260120_140616-thumb.jpg',
+      };
+      mockCameraFilesRepository.findAll.mockResolvedValue({
+        files: [fileWithThumb],
+        total: 1,
+      });
+
+      const result = await service.findAll({ page: 1, limit: 20 });
+
+      expect(result.data[0].thumbnailUrl).toBe(signedUrl);
+      expect(mockGcsService.generateSignedUrl).toHaveBeenCalledTimes(2);
     });
 
     it('should return empty imageUrl when GCS not configured', async () => {
@@ -165,6 +183,7 @@ describe('CameraFilesService', () => {
       const result = await service.findAll({ page: 1, limit: 20 });
 
       expect(result.data[0].imageUrl).toBe('');
+      expect(result.data[0].thumbnailUrl).toBe('');
       expect(mockGcsService.generateSignedUrl).not.toHaveBeenCalled();
     });
   });
@@ -188,6 +207,7 @@ describe('CameraFilesService', () => {
         uploadedAt: mockCameraFile.uploadedAt,
         createdAt: mockCameraFile.createdAt,
         imageUrl: signedUrl,
+        thumbnailUrl: '',
       });
     });
 

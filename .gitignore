@@ -25,6 +25,7 @@ domains/camera-ingestion/watcher/yarn-debug.log*
 domains/camera-ingestion/watcher/yarn-error.log*
 domains/camera-ingestion/watcher/.pnp
 domains/camera-ingestion/watcher/.pnp.js
+domains/camera-ingestion/watcher/watch-dir/
 
 # TypeScript
 *.tsbuildinfo

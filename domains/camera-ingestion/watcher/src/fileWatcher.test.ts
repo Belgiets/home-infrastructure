@@ -115,6 +115,7 @@ describe('FileWatcher', () => {
       mockUploader.uploadFile.mockResolvedValue({
         success: true,
         gcsPath: 'gs://bucket/test.txt',
+        gcsThumbPath: 'gs://bucket/test-thumb.txt',
       });
 
       eventHandlers['add']('/test/watch/dir/test.txt');
@@ -125,6 +126,7 @@ describe('FileWatcher', () => {
       expect(mockFileRepo.markUploaded).toHaveBeenCalledWith({
         fileName: 'test.txt',
         gcsPath: 'gs://bucket/test.txt',
+        gcsThumbPath: 'gs://bucket/test-thumb.txt',
       });
     });
 

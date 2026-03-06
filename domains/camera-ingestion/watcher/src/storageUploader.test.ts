@@ -1,10 +1,12 @@
 import { Storage } from '@google-cloud/storage';
 import * as fs from 'fs';
+import sharp from 'sharp';
 import { StorageUploader } from './storageUploader';
 import { logger } from './logger';
 
 jest.mock('@google-cloud/storage');
 jest.mock('fs');
+jest.mock('sharp');
 jest.mock('./config', () => ({
   config: {
     gcsProjectId: 'test-project',
@@ -24,14 +26,21 @@ jest.mock('./logger', () => ({
 describe('StorageUploader', () => {
   let uploader: StorageUploader;
   let mockUpload: jest.Mock;
+  let mockSave: jest.Mock;
+  let mockFile: jest.Mock;
   let mockBucket: jest.Mock;
+  let mockSharpToBuffer: jest.Mock;
+  let mockSharpResize: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     mockUpload = jest.fn().mockResolvedValue(undefined);
+    mockSave = jest.fn().mockResolvedValue(undefined);
+    mockFile = jest.fn().mockReturnValue({ save: mockSave });
     mockBucket = jest.fn().mockReturnValue({
       upload: mockUpload,
+      file: mockFile,
     });
 
     (Storage as unknown as jest.Mock).mockImplementation(() => ({
@@ -43,6 +52,10 @@ describe('StorageUploader', () => {
       isFile: () => true,
       size: 1024,
     });
+
+    mockSharpToBuffer = jest.fn().mockResolvedValue(Buffer.from('thumb-data'));
+    mockSharpResize = jest.fn().mockReturnValue({ toBuffer: mockSharpToBuffer });
+    (sharp as unknown as jest.Mock).mockReturnValue({ resize: mockSharpResize });
 
     uploader = new StorageUploader();
   });
@@ -92,13 +105,16 @@ describe('StorageUploader', () => {
   });
 
   describe('uploadFile', () => {
-    it('should upload file to correct GCS path with date prefix', async () => {
+    it('should upload file and thumbnail to correct GCS paths with date prefix', async () => {
       jest.useFakeTimers();
       jest.setSystemTime(new Date('2024-03-15T10:30:00Z'));
 
       const result = await uploader.uploadFile('/path/to/test.jpg');
 
       expect(mockBucket).toHaveBeenCalledWith('test-bucket');
+
+      // Original file uploaded via bucket.upload()
+      expect(mockUpload).toHaveBeenCalledTimes(1);
       expect(mockUpload).toHaveBeenCalledWith('/path/to/test.jpg', {
         destination: '2024/03/15/test.jpg',
         metadata: {
@@ -109,8 +125,21 @@ describe('StorageUploader', () => {
           },
         },
       });
+
+      // Thumbnail uploaded via bucket.file().save() from buffer
+      expect(mockFile).toHaveBeenCalledWith('2024/03/15/test-thumb.jpg');
+      expect(mockSave).toHaveBeenCalledWith(Buffer.from('thumb-data'), {
+        metadata: {
+          contentType: 'image/jpeg',
+          metadata: {
+            uploadedAt: expect.any(String),
+          },
+        },
+      });
+
       expect(result.success).toBe(true);
       expect(result.gcsPath).toBe('gs://test-bucket/2024/03/15/test.jpg');
+      expect(result.gcsThumbPath).toBe('gs://test-bucket/2024/03/15/test-thumb.jpg');
 
       jest.useRealTimers();
     });
@@ -120,6 +149,7 @@ describe('StorageUploader', () => {
 
       expect(result.success).toBe(true);
       expect(result.filePath).toBe('/path/to/file.jpg');
+      expect(result.gcsThumbPath).toBeDefined();
       expect(result.uploadedAt).toBeInstanceOf(Date);
       expect(result.error).toBeUndefined();
     });
@@ -193,6 +223,7 @@ describe('StorageUploader', () => {
         Storage: jest.fn(() => ({
           bucket: jest.fn().mockReturnValue({
             upload: jest.fn().mockResolvedValue(undefined),
+            file: jest.fn().mockReturnValue({ save: jest.fn().mockResolvedValue(undefined) }),
           }),
         })),
       }));
@@ -204,14 +235,19 @@ describe('StorageUploader', () => {
         }),
         unlinkSync: mockUnlinkSync,
       }));
+
+      const mockToBuffer = jest.fn().mockResolvedValue(Buffer.from('thumb-data'));
+      const mockResize = jest.fn().mockReturnValue({ toBuffer: mockToBuffer });
+      jest.doMock('sharp', () => jest.fn().mockReturnValue({ resize: mockResize }));
     });
 
-    it('should delete file after successful upload when enabled', async () => {
+    it('should delete original file after successful upload when enabled', async () => {
       const { StorageUploader } = await import('./storageUploader');
       const uploaderWithDelete = new StorageUploader();
 
       await uploaderWithDelete.uploadFile('/path/to/file.jpg');
 
+      expect(mockUnlinkSync).toHaveBeenCalledTimes(1);
       expect(mockUnlinkSync).toHaveBeenCalledWith('/path/to/file.jpg');
     });
 
@@ -229,6 +265,35 @@ describe('StorageUploader', () => {
       expect(result.success).toBe(true);
       expect(mockLogger.warn).toHaveBeenCalledWith(
         expect.stringContaining('Could not delete local file'),
+      );
+    });
+  });
+
+  describe('createThumbnail', () => {
+    it('should call sharp with correct resize parameters and return buffer', async () => {
+      await uploader.uploadFile('/path/to/photo.jpg');
+
+      expect(sharp).toHaveBeenCalledWith('/path/to/photo.jpg');
+      expect(mockSharpResize).toHaveBeenCalledWith(300, 200, { fit: 'cover' });
+      expect(mockSharpToBuffer).toHaveBeenCalled();
+    });
+
+    it('should upload only original file when thumbnail creation fails', async () => {
+      (sharp as unknown as jest.Mock).mockReturnValue({
+        resize: jest.fn().mockReturnValue({
+          toBuffer: jest.fn().mockRejectedValue(new Error('Sharp error')),
+        }),
+      });
+
+      const result = await uploader.uploadFile('/path/to/photo.jpg');
+
+      expect(result.success).toBe(true);
+      expect(result.gcsThumbPath).toBeUndefined();
+      expect(mockUpload).toHaveBeenCalledTimes(1);
+      expect(mockSave).not.toHaveBeenCalled();
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to create thumbnail'),
+        expect.any(Error),
       );
     });
   });

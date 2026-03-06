@@ -3,7 +3,7 @@ import { Db } from 'mongodb';
 export class FileRepository {
   constructor(private readonly db: Db) {}
 
-  async markUploaded(data: { fileName: string; gcsPath: string }): Promise<void> {
+  async markUploaded(data: { fileName: string; gcsPath: string; gcsThumbPath?: string }): Promise<void> {
     await this.db.collection('files').updateOne(
       { fileName: data.fileName },
       {
@@ -12,6 +12,7 @@ export class FileRepository {
         },
         $set: {
           gcsPath: data.gcsPath,
+          gcsThumbPath: data.gcsThumbPath,
           status: 'uploaded',
           uploadedAt: new Date(),
         },

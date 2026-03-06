@@ -36,10 +36,31 @@ describe('FileRepository', () => {
           },
           $set: {
             gcsPath: 'gs://bucket/test-file.pdf',
+            gcsThumbPath: undefined,
             status: 'uploaded',
             uploadedAt: expect.any(Date),
           },
         },
+        { upsert: true },
+      );
+    });
+
+    it('should include gcsThumbPath when provided', async () => {
+      const data = {
+        fileName: 'photo.jpg',
+        gcsPath: 'gs://bucket/photo.jpg',
+        gcsThumbPath: 'gs://bucket/photo-thumb.jpg',
+      };
+
+      await repository.markUploaded(data);
+
+      expect(mockCollection.updateOne).toHaveBeenCalledWith(
+        { fileName: 'photo.jpg' },
+        expect.objectContaining({
+          $set: expect.objectContaining({
+            gcsThumbPath: 'gs://bucket/photo-thumb.jpg',
+          }),
+        }),
         { upsert: true },
       );
     });

@@ -4,6 +4,7 @@ import * as path from 'path';
 import { config } from './config';
 import { logger } from './logger';
 import { FileUploadResult } from './types';
+import sharp from 'sharp';
 
 export class StorageUploader {
   private storage: Storage;
@@ -18,12 +19,16 @@ export class StorageUploader {
   async uploadFile(localFilePath: string): Promise<FileUploadResult> {
     const startTime = Date.now();
     const fileName = path.basename(localFilePath);
+    const { name, ext } = path.parse(fileName);
+    const thumbName = `${name}-thumb${ext}`;
+    const thumbBuffer = await this.createThumbnail(localFilePath);
 
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     const gcsPath = `${year}/${month}/${day}/${fileName}`;
+    const gcsThumbPath = `${year}/${month}/${day}/${thumbName}`;
 
     try {
       logger.debug(`Starting upload: ${localFilePath} -> gs://${this.bucketName}/${gcsPath}`);
@@ -37,16 +42,12 @@ export class StorageUploader {
         throw new Error(`Not a file: ${localFilePath}`);
       }
 
-      await this.storage.bucket(this.bucketName).upload(localFilePath, {
-        destination: gcsPath,
-        metadata: {
-          contentType: this.getContentType(fileName),
-          metadata: {
-            uploadedAt: new Date().toISOString(),
-            originalPath: localFilePath,
-          },
-        },
-      });
+      await Promise.all([
+        this.uploadFileToBucket(localFilePath, gcsPath, fileName),
+        thumbBuffer
+            ? this.uploadBufferToBucket(thumbBuffer, gcsThumbPath, thumbName)
+            : null
+      ])
 
       const duration = Date.now() - startTime;
       logger.info(`✓ Uploaded ${fileName} in ${duration}ms (${this.formatBytes(stats.size)})`);
@@ -68,6 +69,7 @@ export class StorageUploader {
         success: true,
         filePath: localFilePath,
         gcsPath: `gs://${this.bucketName}/${gcsPath}`,
+        gcsThumbPath: thumbBuffer ? `gs://${this.bucketName}/${gcsThumbPath}` : undefined,
         uploadedAt: new Date(),
       };
     } catch (error) {
@@ -80,6 +82,46 @@ export class StorageUploader {
         uploadedAt: new Date(),
       };
     }
+  }
+
+  private async createThumbnail(localFilePath: string): Promise<Buffer | null> {
+    try {
+      logger.info(`Creating thumbnail for: ${localFilePath}`);
+      return await sharp(localFilePath)
+          .resize(300, 200, { fit: 'cover' })
+          .toBuffer();
+    } catch (e) {
+      logger.error(`✗ Failed to create thumbnail for ${path.basename(localFilePath)}:`, e);
+
+      return null;
+    }
+  }
+
+  private async uploadBufferToBucket(buffer: Buffer, gcsPath: string, fileName: string): Promise<void> {
+    logger.debug(`Starting thumbnail upload: ${fileName} -> gs://${this.bucketName}/${gcsPath}`);
+    const file = this.storage.bucket(this.bucketName).file(gcsPath);
+    await file.save(buffer, {
+      metadata: {
+        contentType: this.getContentType(fileName),
+        metadata: {
+          uploadedAt: new Date().toISOString(),
+        },
+      },
+    });
+    logger.info(`✓ Thumbnail upload successful: gs://${this.bucketName}/${gcsPath}`);
+  }
+
+  private async uploadFileToBucket(localFilePath: string, gcsPath: string, fileName: string): Promise<void> {
+    await this.storage.bucket(this.bucketName).upload(localFilePath, {
+      destination: gcsPath,
+      metadata: {
+        contentType: this.getContentType(fileName),
+        metadata: {
+          uploadedAt: new Date().toISOString(),
+          originalPath: localFilePath,
+        },
+      },
+    });
   }
 
   private getContentType(fileName: string): string {

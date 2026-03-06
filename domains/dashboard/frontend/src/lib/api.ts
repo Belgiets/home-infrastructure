@@ -30,6 +30,7 @@ export interface CameraFile {
   uploadedAt: string;
   createdAt: string;
   imageUrl: string;
+  thumbnailUrl: string;
 }
 
 export interface CameraFilesResponse {

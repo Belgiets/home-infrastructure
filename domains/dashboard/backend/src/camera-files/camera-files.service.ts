@@ -85,10 +85,14 @@ export class CameraFilesService {
 
   private async mapToResponseDto(file: CameraFile): Promise<CameraFileResponseDto> {
     let imageUrl = '';
+    let thumbnailUrl: null | string = null;
 
     if (file.gcsPath && this.gcsService.isConfigured()) {
       try {
-        imageUrl = await this.gcsService.generateSignedUrl(file.gcsPath);
+        [imageUrl, thumbnailUrl] = await Promise.all([
+          this.gcsService.generateSignedUrl(file.gcsPath),
+          file.gcsThumbPath ? this.gcsService.generateSignedUrl(file.gcsThumbPath) : null
+        ])
       } catch (error) {
         // Log error but don't fail the request
         console.error(`Failed to generate signed URL for ${file.gcsPath}:`, error);
@@ -103,6 +107,7 @@ export class CameraFilesService {
       uploadedAt: file.uploadedAt,
       createdAt: file.createdAt,
       imageUrl,
+      thumbnailUrl: thumbnailUrl ?? '',
     };
   }
 }

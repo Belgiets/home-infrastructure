@@ -110,12 +110,6 @@ See [iac/terraform/DEPLOYMENT.md](iac/terraform/DEPLOYMENT.md) for detailed depl
 Quick deployment:
 
 ```bash
-# Enable APIs
-gcloud services enable compute.googleapis.com storage.googleapis.com \
-  iam.googleapis.com logging.googleapis.com \
-  secretmanager.googleapis.com artifactregistry.googleapis.com \
-  run.googleapis.com
-
 # Install gcloud console and terraform(mac os)
 brew tap hashicorp/tap
 brew install hashicorp/tap/terraform
@@ -123,6 +117,12 @@ brew install --cask google-cloud-sdk
 gcloud auth login
 gcloud config set project YOUR_PROJECT_ID
 gcloud auth application-default set-quota-project YOUR_PROJECT_ID
+
+# Enable APIs
+gcloud services enable compute.googleapis.com storage.googleapis.com \
+  iam.googleapis.com logging.googleapis.com \
+  secretmanager.googleapis.com artifactregistry.googleapis.com \
+  run.googleapis.com
 
 # Deploy infrastructure
 cd iac/terraform
@@ -143,3 +143,10 @@ MIT
 - Built following Domain-Driven Design principles
 - Infrastructure as Code with Terraform
 - Security-first approach with Secret Manager
+
+## To run project locally
+```bash
+cd domains/.infra/ && docker-compose -f docker-compose.local.yml up -d  
+cd domains/dashboard/backend/ && npm run start:dev  
+cd domains/dashboard/frontend/ && npm run dev
+```
