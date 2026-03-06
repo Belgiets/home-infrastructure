@@ -33,8 +33,8 @@ export function ImageCard({ file, onClick }: ImageCardProps) {
           </div>
         )}
 
-        {imageError ? (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+        {imageError || !file.thumbnailUrl ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
             <svg
               className="h-12 w-12"
               fill="none"
@@ -48,10 +48,13 @@ export function ImageCard({ file, onClick }: ImageCardProps) {
                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
+            {!imageError && (
+              <span className="mt-1 text-xs">No preview</span>
+            )}
           </div>
         ) : (
           <img
-            src={file.imageUrl}
+            src={file.thumbnailUrl}
             alt={file.fileName}
             className={`h-full w-full object-cover transition-all duration-200 group-hover:scale-105 ${
               imageLoading ? "opacity-0" : "opacity-100"

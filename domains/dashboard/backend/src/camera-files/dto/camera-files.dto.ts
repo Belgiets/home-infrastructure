@@ -36,6 +36,7 @@ export class CameraFileResponseDto {
   uploadedAt: Date;
   createdAt: Date;
   imageUrl: string; // Signed GCS URL (1 hour expiry)
+  thumbnailUrl: string; // Signed GCS URL (1 hour expiry)
 }
 
 export class CameraFilesListResponseDto {

@@ -25,6 +25,7 @@ describe('CameraFilesController', () => {
     uploadedAt: new Date('2026-01-20T14:06:16Z'),
     createdAt: new Date('2026-01-20T14:06:16Z'),
     imageUrl: 'https://storage.googleapis.com/bucket/file.jpg?signature=abc123',
+    thumbnailUrl: '',
   };
 
   const mockListResponse: CameraFilesListResponseDto = {

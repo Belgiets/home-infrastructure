@@ -53,6 +53,7 @@ services:
       - MONGODB_URI=${MONGODB_URI}
     depends_on:
       - ftp-server
+      - mongodb
     restart: unless-stopped
     networks:
       - camera-network

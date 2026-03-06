@@ -143,3 +143,10 @@ MIT
 - Built following Domain-Driven Design principles
 - Infrastructure as Code with Terraform
 - Security-first approach with Secret Manager
+
+## To run project locally
+```bash
+cd domains/.infra/ && docker-compose -f docker-compose.local.yml up -d  
+cd domains/dashboard/backend/ && npm run start:dev  
+cd domains/dashboard/frontend/ && npm run dev
+```

@@ -59,3 +59,6 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # http client variables
 http-client.private.env.json
+
+# gcloud service account creds for local dev
+sa-dashboard-backend-dev.json

@@ -6,6 +6,7 @@ export interface CameraFile {
   _id: ObjectId;
   fileName: string;
   gcsPath: string;
+  gcsThumbPath?: string;
   status: string;
   uploadedAt: Date;
   createdAt: Date;

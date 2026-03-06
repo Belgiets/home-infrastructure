@@ -40,6 +40,7 @@ Key variables:
 | `JWT_ACCESS_SECRET` | Secret for access tokens |
 | `JWT_REFRESH_SECRET` | Secret for refresh tokens |
 | `FRONTEND_URL` | Frontend URL for CORS |
+| `GOOGLE_APPLICATION_CREDENTIALS` | Path to GCP service account key JSON (for signed URLs) |
 
 ### 3. Run database migrations
 
@@ -50,42 +51,54 @@ npm run prisma:migrate:deploy
 ### 4. GCS Signed URLs (Local Development)
 
 The backend generates signed URLs for camera images. Signing requires a service account
-with a private key — regular user credentials (`someemail@gmail.com`) can't sign URLs directly.
-The solution is **impersonation**: your user account acts *on behalf of* a service account that has signing capability.
+with a private key (`client_email`) — regular user credentials from `gcloud auth` can't sign URLs.
 
-> **How ADC works:** `gcloud auth application-default login` writes credentials to
-> `~/.config/gcloud/application_default_credentials.json`. Both the backend (Node.js SDK)
-> and Terraform read from this same file. Switching between impersonation and normal login
-> affects both tools — see the note below.
+#### Option A: Service Account Key (Recommended)
 
-**One-time setup** — Grant yourself permission to impersonate:
+One-time setup, no credential switching between backend and Terraform:
 
 ```bash
+# Generate the key file
+gcloud iam service-accounts keys create ./sa-dashboard-backend-dev.json \
+  --iam-account=dashboard-backend-dev@home-infra-480109.iam.gserviceaccount.com
+```
+
+Add to your `.env`:
+
+```env
+GOOGLE_APPLICATION_CREDENTIALS=/Users/YOUR_USERNAME/sa-dashboard-backend-dev.json
+```
+
+That's it. The key file contains `client_email` and the private key needed for signing.
+
+> **Security note:** Never commit the key file to git. The root `.gitignore` already
+> ignores `service-account-key*.json` and `credentials.json`. Store it outside the repo
+> (e.g., home directory).
+
+#### Option B: Impersonation
+
+Alternative if you prefer not to manage key files. Your user account acts *on behalf of* a service account:
+
+```bash
+# One-time: grant yourself permission to impersonate
 gcloud iam service-accounts add-iam-policy-binding \
-  camera-ingestion-dev@home-infra-480109.iam.gserviceaccount.com \
+  dashboard-backend-dev@home-infra-480109.iam.gserviceaccount.com \
   --member="user:YOUR_EMAIL@gmail.com" \
   --role="roles/iam.serviceAccountTokenCreator" \
   --project=home-infra-480109
-```
 
-**Before running the backend locally** — enable impersonation:
-
-```bash
+# Before running the backend
 gcloud auth application-default login \
-  --impersonate-service-account=camera-ingestion-dev@home-infra-480109.iam.gserviceaccount.com
-```
+  --impersonate-service-account=dashboard-backend-dev@home-infra-480109.iam.gserviceaccount.com
 
-**Before running Terraform** — disable impersonation (switch back to your user account):
-
-```bash
+# Before running Terraform (switch back to your user account)
 gcloud auth application-default login
 ```
 
 > **Why switch back for Terraform?** Terraform also reads ADC. When impersonation is active,
-> Terraform runs as the service account which lacks permissions to manage GCP resources
-> (Secret Manager, Cloud Run, etc.). Your user account has those permissions as project owner.
+> Terraform runs as the service account which lacks permissions to manage GCP resources.
 
-> **On Cloud Run:** No impersonation needed — Cloud Run automatically uses the attached
+> **On Cloud Run:** No setup needed — Cloud Run automatically uses the attached
 > service account (`dashboard-backend-dev`) which has `iam.serviceAccountTokenCreator`.
 
 ## Running
